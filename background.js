@@ -69,6 +69,7 @@ async function grabInPage(opts) {
     title: vd.title || txt(mf.title) || '',
     author: vd.author || mf.ownerChannelName || '',
     publishDate: mf.publishDate || mf.uploadDate || '',
+    lengthSeconds: vd.lengthSeconds || mf.lengthSeconds || '',
     viewCount: vd.viewCount || mf.viewCount || '',
     description: vd.shortDescription || txt(mf.description) || '',
     comments: findCC(window.ytInitialData),
@@ -176,6 +177,7 @@ async function biliFetchVideo(bvid, mixin) {
       title: d.title || '',
       author: (d.owner && d.owner.name) || '',
       pubdate: d.pubdate || 0,
+      duration: d.duration || 0,
       desc: d.desc || '',
       stat: d.stat
         ? { view: d.stat.view, danmaku: d.stat.danmaku, reply: d.stat.reply, like: d.stat.like }
@@ -412,6 +414,7 @@ function buildFiles(results, opts) {
       { k: '来源', v: 'https://www.youtube.com/watch?v=' + r.videoId, q: false }, // 裸 URL → Obsidian 渲染为可点外链
       { k: '作者', v: meta.author ? '[[' + meta.author + ']]' : '', q: true }, // 双链 → 聚合同作者
       { k: '发布时间', v: __FMT.fmtDate(meta.publishDate), q: false },
+      { k: '视频长度', v: __FMT.fmtDuration(meta.lengthSeconds), q: false },
       { k: '观看数', v: __FMT.fmtNum(meta.viewCount), q: false },
       { k: '评论数', v: meta.comments || '不可用', q: false },
       { k: '简介', v: meta.description || '', q: true },
@@ -447,6 +450,7 @@ function buildBiliFiles(results) {
       { k: '来源', v: 'https://www.bilibili.com/video/' + r.bvid, q: false }, // 裸 URL → 可点外链
       { k: '作者', v: meta.author ? '[[' + meta.author + ']]' : '', q: true }, // 双链 → 聚合同作者
       { k: '发布时间', v: __FMT.fmtUnixDate(meta.pubdate), q: false },
+      { k: '视频长度', v: __FMT.fmtDuration(meta.duration), q: false },
       { k: '播放', v: __FMT.fmtNum(s.view), q: false },
       { k: '弹幕', v: __FMT.fmtNum(s.danmaku), q: false },
       { k: '点赞', v: __FMT.fmtNum(s.like), q: false },

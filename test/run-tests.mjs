@@ -53,10 +53,14 @@ console.log('fmtNum / fmtDate / sanitize');
   ok('文件名清洗非法字符', FMT.sanitize('a/b:c*d?\ne') === 'a b c d e');
 }
 
-console.log('fmtUnixDate');
+console.log('fmtUnixDate / fmtDuration');
 {
   ok('unix 秒转日期格式', /^\d{4}-\d{2}-\d{2}$/.test(FMT.fmtUnixDate(1780023600)));
   ok('unix 为 0 显示横线', FMT.fmtUnixDate(0) === '—');
+  ok('时长 <1h → M:SS', FMT.fmtDuration(225) === '3:45');
+  ok('时长 ≥1h → H:MM:SS', FMT.fmtDuration(3723) === '1:02:03');
+  ok('时长 0/缺失 → 横线', FMT.fmtDuration(0) === '—' && FMT.fmtDuration('') === '—');
+  ok('时长接受字符串秒数', FMT.fmtDuration('225') === '3:45');
 }
 
 console.log('yamlStr / sanitizeTag');
