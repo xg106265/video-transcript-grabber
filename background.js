@@ -407,7 +407,16 @@ function buildFiles(results, opts) {
     let n = 2;
     while (used.has(name.toLowerCase())) name = base + ' (' + n++ + ').md';
     used.add(name.toLowerCase());
-    files.push({ name, data: __FMT.toMd({ videoId: r.videoId, text, ...meta }) });
+    const fm = [
+      { k: '标题', v: meta.title || r.videoId, q: true },
+      { k: '来源', v: 'https://www.youtube.com/watch?v=' + r.videoId, q: false }, // 裸 URL → Obsidian 渲染为可点外链
+      { k: '作者', v: meta.author ? '[[' + meta.author + ']]' : '', q: true }, // 双链 → 聚合同作者
+      { k: '发布时间', v: __FMT.fmtDate(meta.publishDate), q: false },
+      { k: '观看数', v: __FMT.fmtNum(meta.viewCount), q: false },
+      { k: '评论数', v: meta.comments || '不可用', q: false },
+      { k: '简介', v: meta.description || '', q: true },
+    ];
+    files.push({ name, data: __FMT.toMdObsidian({ fm, tags: [meta.author].filter(Boolean), text }) });
   }
   const fails = results.filter((r) => r && !r.ok);
   if (fails.length) {
@@ -427,12 +436,24 @@ function buildBiliFiles(results) {
   for (const r of results) {
     if (!r || !r.ok) continue;
     const meta = r.meta || {};
+    const s = meta.stat || {};
     const base = __FMT.sanitize(meta.title) || r.bvid;
     let name = base + '.md';
     let n = 2;
     while (used.has(name.toLowerCase())) name = base + ' (' + n++ + ').md';
     used.add(name.toLowerCase());
-    files.push({ name, data: __FMT.toMdBili({ ...meta, text: r.text }) });
+    const fm = [
+      { k: '标题', v: meta.title || r.bvid, q: true },
+      { k: '来源', v: 'https://www.bilibili.com/video/' + r.bvid, q: false }, // 裸 URL → 可点外链
+      { k: '作者', v: meta.author ? '[[' + meta.author + ']]' : '', q: true }, // 双链 → 聚合同作者
+      { k: '发布时间', v: __FMT.fmtUnixDate(meta.pubdate), q: false },
+      { k: '播放', v: __FMT.fmtNum(s.view), q: false },
+      { k: '弹幕', v: __FMT.fmtNum(s.danmaku), q: false },
+      { k: '点赞', v: __FMT.fmtNum(s.like), q: false },
+      { k: '评论', v: __FMT.fmtNum(s.reply), q: false },
+      { k: '简介', v: meta.desc || '', q: true },
+    ];
+    files.push({ name, data: __FMT.toMdObsidian({ fm, tags: [meta.author].filter(Boolean), text: r.text }) });
   }
   const fails = results.filter((r) => r && !r.ok);
   if (fails.length) {

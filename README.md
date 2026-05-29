@@ -3,8 +3,11 @@
 在 **YouTube 频道/播放列表页** 或 **B站 UP主投稿页**，一键扫描整页视频，批量抓取
 字幕/转录文案，每个视频导出一个 Markdown，最后打包成一个 `.zip` 下载。
 
-- **YouTube** `.md`：标题、链接、作者、发布时间、观看数、评论数、视频描述、字幕文案。
-- **哔哩哔哩** `.md`：标题、链接、UP主、发布时间、播放、弹幕、评论、点赞、视频简介、字幕文案。
+导出为 **Obsidian 风格**：文件顶部 YAML frontmatter（属性）+ 正文只放字幕。
+
+- frontmatter：`标题`、`来源`（可点击链接）、`作者`（Obsidian 双链 `[[作者]]`，点开聚合同作者）、
+  `发布时间`、`简介` + 数据字段（YouTube：观看数/评论数；B站：播放/弹幕/点赞/评论）+ `tags`（只放作者名）。
+- 正文：字幕文案（可选带时间戳）。
 
 （评论数等为尽力抓取，少数视频可能显示「不可用」。）
 
@@ -23,10 +26,11 @@
 
 ## 使用
 
-1. 打开列表页：
-   - YouTube：频道视频页 `https://www.youtube.com/@频道名/videos` 或播放列表 `/playlist`
-   - B站：UP主投稿页 `https://space.bilibili.com/UID/video`
-2. 点插件 → 「**扫描本页视频**」（YouTube 自动滚动；B站 自动翻页）
+1. 打开页面：
+   - **列表页**（扫整页全部）：YouTube 频道视频页 `/@频道/videos` 或播放列表 `/playlist`；
+     B站 UP主投稿页 `space.bilibili.com/UID/video`。
+   - **视频播放页**（只抓当前这一个）：YouTube `/watch`、`/shorts/`；B站 `/video/BV…`。
+2. 点插件 → 「**扫描本页视频**」（列表页：YouTube 自动滚动、B站 自动翻页）
 3. 勾选要抓的视频，按需调整「保留时间戳 / 压缩包名」
 4. 点「**下载选中文案 (zip)**」
 
@@ -43,7 +47,7 @@
 
 所以本插件**不碰这些接口**，而是骑在 YouTube 自己的渲染管线上——它内部会处理 poToken：
 
-1. **扫描**：在频道/列表页注入脚本，自动滚动收集所有 `watch?v=` 与 `/shorts/` 链接和标题。
+1. **扫描**：在频道/列表页注入脚本，自动滚动收集所有 `watch?v=` 与 `/shorts/` 链接和标题（在视频播放页则只取当前视频）。
 2. **抓字幕**：后台标签页真实导航到每个视频页，然后：
    - **静音播放视频**（关键！实测有些视频的转写只有在播放时才加载，暂停会一直转圈）；
    - 滚动触发懒加载，等「显示转写文稿」按钮出现并点开；
@@ -85,9 +89,10 @@ DOM 抓取部分依赖真实 YouTube 页面，无法离线单测，已在真实�
 ```
 manifest.json          扩展清单（MV3）
 popup.html/.css/.js    弹窗界面与控制逻辑
-background.js          后台引擎：逐视频导航 + grabInPage(打开转写面板/播放/抓取)
-lib/page-helpers.js    注入页面：扫描视频列表 / 打包下载
-lib/format.js          纯格式化（去重/文本拼接/Markdown），后台与测试共用
+background.js          后台引擎：YouTube 逐视频导航抓转写面板 / B站 并发调接口
+lib/page-helpers.js    注入页面：扫描视频列表（含播放页只取当前）/ 打包下载
+lib/format.js          纯格式化（去重/文本拼接/Obsidian frontmatter），后台与测试共用
+lib/bili-wbi.js        B站 wbi 签名（md5 + mixin key + w_rid），注入 B站页 MAIN world
 icons/                 图标
 test/run-tests.mjs     单元测试
 ```

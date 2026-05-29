@@ -53,38 +53,51 @@ console.log('fmtNum / fmtDate / sanitize');
   ok('文件名清洗非法字符', FMT.sanitize('a/b:c*d?\ne') === 'a b c d e');
 }
 
-console.log('toMd');
+console.log('fmtUnixDate');
 {
-  const md = FMT.toMd({
-    videoId: 'abc12345678',
-    title: '我的标题',
-    author: '某频道',
-    publishDate: '2024-03-15T00:00:00-07:00',
-    viewCount: '12345',
-    comments: '1,234',
-    description: '描述行1\n描述行2',
-    text: '字幕第一句\n字幕第二句',
-  });
-  ok('含全部字段且无字幕语言行', /# 我的标题/.test(md) && /作者：某频道/.test(md) && /发布时间：2024-03-15/.test(md) && /观看数：12,345/.test(md) && /评论数：1,234/.test(md) && !/字幕语言/.test(md));
-  ok('描述与字幕分区', /## 视频描述/.test(md) && /## 字幕文案/.test(md) && /字幕第一句\n字幕第二句/.test(md));
-  ok('评论数缺失显示不可用', /评论数：不可用/.test(FMT.toMd({ videoId: 'x', title: 't', text: '' })));
+  ok('unix 秒转日期格式', /^\d{4}-\d{2}-\d{2}$/.test(FMT.fmtUnixDate(1780023600)));
+  ok('unix 为 0 显示横线', FMT.fmtUnixDate(0) === '—');
 }
 
-console.log('fmtUnixDate / toMdBili（B站）');
+console.log('yamlStr / sanitizeTag');
 {
-  ok('unix 秒转日期', FMT.fmtUnixDate(1780023600) === FMT.fmtUnixDate(1780023600) && /^\d{4}-\d{2}-\d{2}$/.test(FMT.fmtUnixDate(1780023600)));
-  ok('unix 为 0 显示横线', FMT.fmtUnixDate(0) === '—');
-  const md = FMT.toMdBili({
-    bvid: 'BV1jgVc6aEaW',
-    title: '【罗翔】测试',
-    author: '罗翔说刑法',
-    pubdate: 1780023600,
-    stat: { view: 23805, danmaku: 13, reply: 71, like: 2846 },
-    desc: '简介内容',
+  ok('yaml 转义引号与换行', FMT.yamlStr('a"b\nc') === '"a\\"b\\nc"');
+  ok('标签去空格→连字符', FMT.sanitizeTag('Mark Rober') === 'Mark-Rober');
+  ok('标签保留中文', FMT.sanitizeTag('罗翔说刑法') === '罗翔说刑法');
+}
+
+console.log('toMdObsidian（Obsidian frontmatter 版式）');
+{
+  const md = FMT.toMdObsidian({
+    fm: [
+      { k: '标题', v: '我的"标题"', q: true },
+      { k: '来源', v: 'https://www.bilibili.com/video/BVxxx', q: true },
+      { k: '作者', v: '罗翔说刑法', q: true },
+      { k: '发布时间', v: '2024-03-15', q: false },
+      { k: '播放', v: '23,805', q: false },
+      { k: '简介', v: '第一行\n第二行', q: true },
+    ],
+    tags: ['罗翔说刑法'],
     text: '字幕第一句\n字幕第二句',
   });
-  ok('含 B站 字段（播放/弹幕/评论/点赞）', /UP主：罗翔说刑法/.test(md) && /播放：23,805/.test(md) && /弹幕：13/.test(md) && /评论：71/.test(md) && /点赞：2,846/.test(md));
-  ok('B站 链接 + 分区 + 字幕', /bilibili\.com\/video\/BV1jgVc6aEaW/.test(md) && /## 视频简介/.test(md) && /字幕第一句\n字幕第二句/.test(md));
+  ok('以 frontmatter 开头 + 标题引号转义', md.startsWith('---\n标题: "我的\\"标题\\""'));
+  ok('简介多行转义后放进 frontmatter', /简介: "第一行\\n第二行"/.test(md));
+  ok('日期/数字为纯标量不加引号', /发布时间: 2024-03-15\n/.test(md) && /播放: 23,805\n/.test(md));
+  ok('tags 只放作者名', /tags:\n  - 罗翔说刑法\n---/.test(md));
+  ok('frontmatter 之后正文只有字幕', md.includes('---\n\n字幕第一句\n字幕第二句\n'));
+  ok('空 tags 渲染为 []', /tags: \[\]/.test(FMT.toMdObsidian({ fm: [], tags: [], text: 'x' })));
+
+  // 来源裸 URL（可点外链）+ 作者双链（Obsidian 内链）
+  const md2 = FMT.toMdObsidian({
+    fm: [
+      { k: '来源', v: 'https://www.bilibili.com/video/BVxxx', q: false },
+      { k: '作者', v: '[[罗翔说刑法]]', q: true },
+    ],
+    tags: ['罗翔说刑法'],
+    text: 'x',
+  });
+  ok('来源为裸 URL（无引号 → 可点外链）', /来源: https:\/\/www\.bilibili\.com\/video\/BVxxx\n/.test(md2));
+  ok('作者为 Obsidian 双链', /作者: "\[\[罗翔说刑法\]\]"\n/.test(md2));
 }
 
 // ---- 加载 lib/page-helpers.js（zip 构建器）----
