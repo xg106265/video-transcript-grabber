@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube / 哔哩哔哩 文案批量下载",
+  "version": "2.1.0",
+  "description": "在 YouTube 频道/播放列表 或 B站 UP主页面，批量抓取视频字幕/转录文案，按标题导出 Markdown 并打包为 zip。",
+  "permissions": ["scripting", "storage", "tabs"],
+  "host_permissions": [
+    "https://www.youtube.com/*",
+    "https://m.youtube.com/*",
+    "https://*.bilibili.com/*",
+    "https://*.hdslb.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "YouTube 文案批量下载",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>YouTube 文案批量下载</title>
+  </head>
+  <body>
+    <header>
+      <h1>YouTube / B站 文案批量下载</h1>
+    </header>
+
+    <!-- 非支持页面提示 -->
+    <section id="not-yt" class="panel hidden">
+      <p class="hint">
+        请在以下页面打开本插件：<br />
+        · YouTube <strong>频道页</strong>（<code>/@频道/videos</code>）或<strong>播放列表</strong>（<code>/playlist</code>）<br />
+        · 哔哩哔哩 <strong>UP主投稿页</strong>（<code>space.bilibili.com/UID/video</code>）
+      </p>
+    </section>
+
+    <!-- 主面板 -->
+    <section id="main" class="panel hidden">
+      <div class="row">
+        <button id="scan" class="btn primary">扫描本页视频</button>
+        <span id="scan-status" class="muted"></span>
+      </div>
+
+      <div id="options" class="options hidden">
+        <label class="check"><input type="checkbox" id="timestamps" /> 保留时间戳</label>
+        <div class="opt-row">
+          <label>压缩包名</label>
+          <input type="text" id="zipName" />
+        </div>
+      </div>
+
+      <div id="list-head" class="list-head hidden">
+        <label class="check"><input type="checkbox" id="checkAll" checked /> 全选</label>
+        <span id="count" class="muted"></span>
+      </div>
+      <ul id="list" class="list"></ul>
+
+      <div id="actions" class="row hidden">
+        <button id="download" class="btn primary">下载选中文案 (zip)</button>
+      </div>
+    </section>
+
+    <!-- 进度面板 -->
+    <section id="progress" class="panel hidden">
+      <div class="bar"><div id="bar-fill" class="bar-fill"></div></div>
+      <p id="progress-text" class="muted"></p>
+      <ul id="progress-list" class="list small"></ul>
+      <div class="row">
+        <button id="cancel" class="btn">取消</button>
+        <button id="back" class="btn hidden">返回</button>
+      </div>
+    </section>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
